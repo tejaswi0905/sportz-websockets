@@ -1,0 +1,1 @@
+console.log("Some things are ment to fuck")
