@@ -1,6 +1,8 @@
 import express from "express";
 import { prisma } from "../lib/prisma.js";
 
+import { matchRouter } from "./routes/matches.js";
+
 const app = express();
 const port = 8000;
 
@@ -15,6 +17,8 @@ app.get("/", async (req, res) => {
     res.status(500).send("Error connecting to database");
   }
 });
+
+app.use("/matches", matchRouter);
 
 app.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);
