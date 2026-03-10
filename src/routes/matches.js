@@ -1,14 +1,47 @@
 import { Router } from "express";
-import { createMatchSchema } from "../validation/matches.js";
+import {
+  createMatchSchema,
+  listMatchesQuerySchema,
+} from "../validation/matches.js";
 import { prisma } from "../../lib/prisma.js";
 import { getMatchStatus } from "../utils/match-status.js";
 
 export const matchRouter = Router();
 
-matchRouter.get("/", (req, res) => {
-  res.status(200).json({
-    message: "Matches list",
-  });
+const MAX_LIMIT = 100;
+
+matchRouter.get("/", async (req, res) => {
+  const parsed = listMatchesQuerySchema.safeParse(req.query);
+
+  if (!parsed.success) {
+    res.status(400).json({
+      error: "Invalid query",
+      details: JSON.stringify(parsed.error),
+    });
+    return;
+  }
+
+  const limit = Math.min(parsed.data.rateLimit ?? 50, MAX_LIMIT);
+
+  try {
+    const data = await prisma.match.findMany({
+      take: limit ?? 50,
+      orderBy: {
+        startTime: "desc",
+      },
+    });
+    res.status(200).json({
+      message: "Query successful",
+      data: {
+        data,
+      },
+    });
+  } catch (e) {
+    res.status(500).json({
+      error: "Failed to fetch data",
+      details: JSON.stringify(e),
+    });
+  }
 });
 
 matchRouter.post("/", async (req, res) => {
