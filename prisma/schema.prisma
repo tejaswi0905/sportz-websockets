@@ -1,0 +1,63 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+enum MatchStatus {
+  scheduled
+  live
+  finished
+}
+
+model Match {
+  id        Int         @id @default(autoincrement())
+  sport     String
+  homeTeam  String
+  awayTeam  String
+  status    MatchStatus @default(scheduled)
+
+  startTime DateTime?
+  endTime   DateTime?
+
+  homeScore Int @default(0)
+  awayScore Int @default(0)
+
+  createdAt DateTime @default(now())
+
+  commentary Commentary[]
+}
+
+model Commentary {
+  id       Int @id @default(autoincrement())
+
+  matchId  Int
+  match    Match @relation(fields: [matchId], references: [id])
+
+  minute    Int?
+  sequence  Int?
+  period    String?
+  eventType String?
+  actor     String?
+  team      String?
+
+  message  String
+  metadata Json?
+
+  tags String[]
+
+  createdAt DateTime @default(now())
+
+  @@index([matchId])
+}
