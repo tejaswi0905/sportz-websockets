@@ -16,7 +16,7 @@ matchRouter.get("/", async (req, res) => {
   if (!parsed.success) {
     res.status(400).json({
       error: "Invalid query",
-      details: JSON.stringify(parsed.error),
+      details: parsed.error.issues,
     });
     return;
   }
@@ -49,7 +49,7 @@ matchRouter.post("/", async (req, res) => {
   if (!parsed.success) {
     res.status(400).json({
       error: "Invalid paylod",
-      details: JSON.stringify(parsed.error),
+      details: parsed.error.issues,
     });
   }
   try {
@@ -63,6 +63,10 @@ matchRouter.post("/", async (req, res) => {
         status: getMatchStatus(req.body.startTime, req.body.endTime),
       },
     });
+
+    if (res.app.locals.broadcastMatchCreated) {
+      res.app.locals.broadcastMatchCreated(new_match);
+    }
 
     res.status(201).json({
       message: "Match created successfully",
